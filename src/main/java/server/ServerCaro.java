@@ -8,7 +8,20 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
+
 class ProcessClient extends Thread{
+
+    final int set_name_client = 1;
+    final int get_list_user = 2;
+    final int start_game = 3;
+    final int invite = 4;
+    final int reques_invite_failed = 50;
+    final int return_list_user = 5;
+
+
+    final int accepted = 6;
+    final int start_caro = 7;
+
     ClientSocket clientSocket;
     ArrayList<ClientSocket> lsClient;
     public ProcessClient(ClientSocket _clientSocket, ArrayList<ClientSocket> _lsClient){
@@ -29,23 +42,80 @@ class ProcessClient extends Thread{
 
                 int flag = (int) json.get("flag");
                 switch(flag){
-                    case 1: // set name client
+                    case set_name_client: // set name client
+                    {
                         this.clientSocket.getUser().setName((String) json.get("name"));
-                        break;
-                    case 2: // get list user
                         ArrayList<User> arrayUser = new ArrayList();
                         this.lsClient.forEach(client -> {
                             arrayUser.add(client.getUser());
                         });
                         JSONArray lsUser = new JSONArray(arrayUser);
                         JSONObject lsUserObj = new JSONObject();
-                        lsUserObj.put("to", "client-gui");
+                        lsUserObj.put("flag", return_list_user);
+                        lsUserObj.put("list_user", lsUser);
+                        System.out.println(lsUserObj.toString());
+                        for(int i = 0; i < this.lsClient.size(); i ++){
+                            this.lsClient.get(i).buffWriter.write(lsUserObj.toString());
+                            this.lsClient.get(i).buffWriter.newLine();
+                            this.lsClient.get(i).buffWriter.flush();
+                        }
+                    }
+                        break;
+                    case get_list_user: // get list user
+                        ArrayList<User> arrayUser = new ArrayList();
+                        this.lsClient.forEach(client -> {
+                            arrayUser.add(client.getUser());
+                        });
+                        JSONArray lsUser = new JSONArray(arrayUser);
+                        JSONObject lsUserObj = new JSONObject();
+                        lsUserObj.put("flag", return_list_user);
                         lsUserObj.put("list_user", lsUser);
                         System.out.println(lsUserObj.toString());
                         this.clientSocket.getBuffWriter().write(lsUserObj.toString());
                         this.clientSocket.getBuffWriter().newLine();
                         this.clientSocket.getBuffWriter().flush();
                         break;
+                    case start_game: {
+                            User user = this.clientSocket.user;
+                            int partnerId = (int) json.get("partnerId");
+                            user.setPartnerId(partnerId);
+                            ClientSocket partnerClientSocket = this.lsClient.get(partnerId);
+                            System.out.println(partnerClientSocket.user.getInGame());
+                            if (!partnerClientSocket.user.getInGame()) { // && partnerClientSocket.user.getId() != user.getId()
+                                JSONObject obj = new JSONObject();
+                                obj.put("flag", invite);
+                                obj.put("partnerId", this.clientSocket.user.getId());
+                                partnerClientSocket.buffWriter.write(obj.toString());
+                                partnerClientSocket.buffWriter.newLine();
+                                partnerClientSocket.buffWriter.flush();
+                            } else {
+                                JSONObject obj = new JSONObject();
+                                obj.put("flag", reques_invite_failed);
+                                obj.put("message", "doi phuong da trong game");
+                                this.clientSocket.buffWriter.write(obj.toString());
+                            }
+                        }
+                        break;
+                    case accepted: {
+                        int partnerId = (int )json.get("partnerId");
+                        ClientSocket Skuser = this.clientSocket;
+                        ClientSocket SkPartner = this.lsClient.get(partnerId);
+                        Skuser.user.setInGame(true);
+                        Skuser.user.setPartnerId(partnerId);
+                        SkPartner.user.setInGame(true);
+                        SkPartner.user.setPartnerId(this.clientSocket.user.getId());
+                        JSONObject obj = new JSONObject();
+                        obj.put("flag", start_caro);
+                        obj.put("message","bat dau game thoi nao!");
+                        Skuser.buffWriter.write(obj.toString());
+                        Skuser.buffWriter.newLine();
+                        Skuser.buffWriter.flush();
+
+                        SkPartner.buffWriter.write(obj.toString());
+                        SkPartner.buffWriter.newLine();
+                        SkPartner.buffWriter.flush();
+                    }
+                    break;
 
                 }
 

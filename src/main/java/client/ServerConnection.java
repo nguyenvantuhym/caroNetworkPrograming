@@ -76,10 +76,15 @@ public class ServerConnection {
     }
 
     public void receiveServer(){
+        clientgui.setDisable();
         new ReceiveThread(buffWriter,buffReader, socketOfServer, this).start();
+    }
+    public void sendinviteRequestToClient(int partnerId) throws IOException {
+        clientgui.sendMessage(partnerId);
     }
 
     public void sendMessage(String message) throws IOException {
+
         this.buffWriter.write(message);
         this.buffWriter.newLine();
         this.buffWriter.flush();

@@ -4,21 +4,55 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class ClientGui implements ActionListener {
+
+    final int set_name_client = 1;
+    final int get_list_user = 2;
+    final int start_game = 3;
+    final int invite = 4;
+    final int reques_invite_failed = 50;
+    final int accepted = 6;
+
+
     private ServerConnection connection;
     private  JFrame f;
-    private JTable table;
+
+    String column[]= {"ID", "NAME", "partnerId", "ingame"};
+    String data[][] ={{}};
+    DefaultTableModel model = null;
+
+    private JTable table = new JTable();
     private JTextField inp;
     private JButton b;
 
     public ClientGui(ServerConnection connection) throws IOException {
         this.connection = connection;
         f = new JFrame();
+        table.setBounds(0,100, 400,300);
+        f.add(table);
+        f.invalidate();
+        f.validate();
+        f.repaint();
+    }
+
+    public void setDisable(){
+
+        WindowEvent wev = new WindowEvent(f, WindowEvent.WINDOW_CLOSING);
+        Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(wev);
+
+        // this will hide and dispose the frame, so that the application quits by
+        // itself if there is nothing else around.
+        f.setVisible(false);
+        f.dispose();
     }
 
     public void setShow(Boolean visible) throws IOException {
@@ -28,45 +62,63 @@ public class ClientGui implements ActionListener {
         connection.sendMessage(req.toString());
         String[][] data = new String[0][];
 
-        inp = new JTextField("Welcome to Javatpoint.");
+        inp = new JTextField("Enter id partner");
         inp.setBounds(50,40, 200,30);
 
         JButton b = new JButton("Play with");
+        b.addActionListener(this);
         b.setActionCommand("start_game");
         b.setBounds(280,40,95,30);
         f.add(b);
         f.add(inp);
         f.setSize(400,400);
         f.setLayout(null);
-        f.setVisible(false);
         f.setVisible(visible);
     }
 
+    public void sendMessage(int partnerId) throws IOException {
+        int a = JOptionPane.showConfirmDialog(f,"banj co loi moi cho caro tu nguoi dung co id :" +partnerId);
+        if(a == JOptionPane.YES_OPTION){
+           JSONObject object = new JSONObject();
+           object.put("flag", accepted);
+           object.put("partnerId",partnerId);
+            BufferedWriter bw = connection.getBuffWriter();
+            bw.write(object.toString());
+            bw.newLine();
+            bw.flush();
+
+        }
+    }
     public void setList(String names){
+
         JSONObject obj = new JSONObject(names);
         JSONArray a = obj.getJSONArray("list_user");
-        String[][] data = new String[a.length()][];
-
+        String data [][] = new String[a.length()][];
         for(int i = 0; i < a.length(); i++){
             JSONObject b = (JSONObject) a.get(i);
-            data[i] = new String[]{Integer.toString((int)b.get("id")), (String) b.get("name"), Integer.toString((int)b.get("partnerId"))};
-            System.out.println(i);
-            System.out.println(data[i][1]);
-        }
-        String column[]= {"ID","NAME","partnerId"};
-        table = new JTable(data,column);
-        table.setBounds(0,100, 400,300);
-        f.add(table);
-        f.invalidate();
-        f.validate();
-        f.repaint();
+            data[i] =  new String[]{Integer.toString((int)b.get("id")), (String) b.get("name"), Integer.toString((int)b.get("partnerId")), (String) b.get("name") };
 
+        }
+        model = new DefaultTableModel(data,column);
+        table.setModel(model);
     }
 
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
         if (actionEvent.getActionCommand() == "start_game") {
+            int id = Integer.parseInt(inp.getText());
+            JSONObject json = new JSONObject();
+            json.put("flag", start_game);
+            json.put("partnerId", id);
 
+            try {
+                BufferedWriter bw = connection.getBuffWriter();
+                bw.write(json.toString());
+                bw.newLine();
+                bw.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

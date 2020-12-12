@@ -3,7 +3,16 @@ package server;
 public class User {
     private int id;
     private String name;
-    private Boolean status;
+
+    public Boolean getInGame() {
+        return inGame;
+    }
+
+    public void setInGame(Boolean inGame) {
+        this.inGame = inGame;
+    }
+
+    private Boolean inGame;
     private int partnerId;
 
     public int getId() {
@@ -22,13 +31,7 @@ public class User {
         this.name = name;
     }
 
-    public Boolean getStatus() {
-        return status;
-    }
 
-    public void setStatus(Boolean status) {
-        this.status = status;
-    }
 
     public int getPartnerId() {
         return partnerId;
@@ -38,6 +41,7 @@ public class User {
         this.partnerId = partnerId;
     }
     public User(int _id, String _name){
+        this.setInGame(false);
         this.id = _id;
         this.name = _name;
     }

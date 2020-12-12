@@ -13,6 +13,16 @@ import java.util.stream.StreamSupport;
 
 class ReceiveThread extends  Thread{
 
+    final int set_name_client = 1;
+    final int get_list_user = 2;
+    final int start_game = 3;
+    final int invite = 4;
+    final int reques_invite_failed = 50;
+    final int start_caro = 7;
+
+    final int accepted = 6;
+    final int return_list_user = 5;
+
     BufferedWriter os = null;
     BufferedReader is = null;
     Socket socket = null;
@@ -35,12 +45,20 @@ class ReceiveThread extends  Thread{
                 if (!((responseLine = is.readLine()) != null)) break;
                     System.out.println(responseLine);
                     JSONObject obj = new JSONObject(responseLine);
-                    String to = (String) obj.get("to");
-                        if(to.equals("client-gui")){
-                            System.out.println(responseLine);
+                    int flag = (int) obj.get("flag");
+                    switch (flag) {
+                        case return_list_user:
                             connection.sendListUserToClientGui(responseLine);
+                            break;
+                        case invite:
+                            connection.sendinviteRequestToClient((int) obj.get("partnerId"));
+                            break;
+                        case start_caro:{
+                            connection.clientgui.setDisable();
+                            new ClientCaro("banj dang danh ");
                         }
                         break;
+                    }
                 }
                 if (responseLine.equals("500 bye")) {
                     os.close();
