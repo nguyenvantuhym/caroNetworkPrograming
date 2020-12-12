@@ -52,9 +52,10 @@ public class ServerConnection {
         this.buffWriter = new BufferedWriter(new OutputStreamWriter(socketOfServer.getOutputStream()));
         // Luồng đầu vào tại Client (Nhận dữ liệu từ server).
         this.buffReader = new BufferedReader(new InputStreamReader(socketOfServer.getInputStream()));
+        clientgui = new ClientGui(this);
         receiveServer();
         enterName();
-        clientgui = new ClientGui(this);
+        clientgui.setShow(true);
 
     }
     public void enterName() throws IOException {

@@ -36,8 +36,10 @@ class ReceiveThread extends  Thread{
                     System.out.println(responseLine);
                     JSONObject obj = new JSONObject(responseLine);
                     String to = (String) obj.get("to");
-                        if(to.equals("client-gui"))
+                        if(to.equals("client-gui")){
+                            System.out.println(responseLine);
                             connection.sendListUserToClientGui(responseLine);
+                        }
                         break;
                 }
                 if (responseLine.equals("500 bye")) {

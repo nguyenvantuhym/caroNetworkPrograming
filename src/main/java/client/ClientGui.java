@@ -18,12 +18,14 @@ public class ClientGui implements ActionListener {
 
     public ClientGui(ServerConnection connection) throws IOException {
         this.connection = connection;
+        f = new JFrame();
+    }
+
+    public void setShow(Boolean visible) throws IOException {
         JSONObject req =new JSONObject();
         req.put("message","get_list_user");
         req.put("flag", 2);
         connection.sendMessage(req.toString());
-        f = new JFrame();
-
         String[][] data = new String[0][];
 
         inp = new JTextField("Welcome to Javatpoint.");
@@ -36,16 +38,20 @@ public class ClientGui implements ActionListener {
         f.add(inp);
         f.setSize(400,400);
         f.setLayout(null);
-        f.setVisible(true);
+        f.setVisible(false);
+        f.setVisible(visible);
     }
+
     public void setList(String names){
         JSONObject obj = new JSONObject(names);
         JSONArray a = obj.getJSONArray("list_user");
         String[][] data = new String[a.length()][];
 
         for(int i = 0; i < a.length(); i++){
-            JSONObject b = (JSONObject) a.get(0);
+            JSONObject b = (JSONObject) a.get(i);
             data[i] = new String[]{Integer.toString((int)b.get("id")), (String) b.get("name"), Integer.toString((int)b.get("partnerId"))};
+            System.out.println(i);
+            System.out.println(data[i][1]);
         }
         String column[]= {"ID","NAME","partnerId"};
         table = new JTable(data,column);

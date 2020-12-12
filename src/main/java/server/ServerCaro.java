@@ -33,7 +33,6 @@ class ProcessClient extends Thread{
                         this.clientSocket.getUser().setName((String) json.get("name"));
                         break;
                     case 2: // get list user
-
                         ArrayList<User> arrayUser = new ArrayList();
                         this.lsClient.forEach(client -> {
                             arrayUser.add(client.getUser());
