@@ -47,6 +47,8 @@ public class ServerConnection {
     private BufferedWriter buffWriter = null;
     private BufferedReader buffReader = null;
     ClientGui clientgui = null;
+    ClientCaro clientCaro = null;
+
     public ServerConnection() throws IOException {
         this.socketOfServer = new Socket(serverHost, SERVER_PORT);
         this.buffWriter = new BufferedWriter(new OutputStreamWriter(socketOfServer.getOutputStream()));
@@ -58,6 +60,29 @@ public class ServerConnection {
         clientgui.setShow(true);
 
     }
+
+    public void showClientCaro(Boolean yourTurn, Boolean yourSide, String name){
+        clientCaro = new ClientCaro(this,"Game caro - "+ name);
+        clientCaro.setYourTurn(yourTurn);
+        clientCaro.setYourSide(yourSide);
+
+        if(clientCaro.getYourTurn()){
+            String side = clientCaro.getYourSide()? "X": "O";
+            int a = JOptionPane.showConfirmDialog(clientCaro,"bạn ("+side+") được đánh trước !!!");
+            if(a == JOptionPane.YES_OPTION){
+
+            }
+            clientCaro.lb.setText("Đến Lượt bạn ("+side+")");
+        } else {
+            String _side = clientCaro.getYourSide()? "O": "X";
+            int a = JOptionPane.showConfirmDialog(clientCaro,"Đối thủ ("+_side+") là người đánh trước !!!");
+            if(a == JOptionPane.YES_OPTION){
+
+            }
+            clientCaro.lb.setText("Đến Lượt đối thủ ("+_side+")");
+        }
+    }
+
     public void enterName() throws IOException {
         JFrame f;
         f = new JFrame();

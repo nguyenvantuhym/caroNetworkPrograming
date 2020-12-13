@@ -14,15 +14,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class ClientGui implements ActionListener {
-
-    final int set_name_client = 1;
-    final int get_list_user = 2;
-    final int start_game = 3;
-    final int invite = 4;
-    final int reques_invite_failed = 50;
-    final int accepted = 6;
-
-
     private ServerConnection connection;
     private  JFrame f;
 
@@ -80,7 +71,7 @@ public class ClientGui implements ActionListener {
         int a = JOptionPane.showConfirmDialog(f,"banj co loi moi cho caro tu nguoi dung co id :" +partnerId);
         if(a == JOptionPane.YES_OPTION){
            JSONObject object = new JSONObject();
-           object.put("flag", accepted);
+           object.put("flag", MyConstants.accepted);
            object.put("partnerId",partnerId);
             BufferedWriter bw = connection.getBuffWriter();
             bw.write(object.toString());
@@ -108,7 +99,7 @@ public class ClientGui implements ActionListener {
         if (actionEvent.getActionCommand() == "start_game") {
             int id = Integer.parseInt(inp.getText());
             JSONObject json = new JSONObject();
-            json.put("flag", start_game);
+            json.put("flag", MyConstants.start_game);
             json.put("partnerId", id);
 
             try {

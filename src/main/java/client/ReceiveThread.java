@@ -13,16 +13,6 @@ import java.util.stream.StreamSupport;
 
 class ReceiveThread extends  Thread{
 
-    final int set_name_client = 1;
-    final int get_list_user = 2;
-    final int start_game = 3;
-    final int invite = 4;
-    final int reques_invite_failed = 50;
-    final int start_caro = 7;
-
-    final int accepted = 6;
-    final int return_list_user = 5;
-
     BufferedWriter os = null;
     BufferedReader is = null;
     Socket socket = null;
@@ -47,15 +37,24 @@ class ReceiveThread extends  Thread{
                     JSONObject obj = new JSONObject(responseLine);
                     int flag = (int) obj.get("flag");
                     switch (flag) {
-                        case return_list_user:
+                        case MyConstants.return_list_user:
                             connection.sendListUserToClientGui(responseLine);
                             break;
-                        case invite:
+                        case MyConstants.invite:
                             connection.sendinviteRequestToClient((int) obj.get("partnerId"));
                             break;
-                        case start_caro:{
+                        case MyConstants.start_caro: {
                             connection.clientgui.setDisable();
-                            new ClientCaro("banj dang danh ");
+                            connection.showClientCaro((Boolean) obj.get("your_turn"), (Boolean) obj.get("your_turn"),(String) obj.get("your_name"));
+                        }
+                        break;
+                        case MyConstants.stick_flag_res: {
+                            connection.clientCaro.tickToPanel((Boolean) obj.get("side"),(int) obj.get("i"), (int) obj.get("j"));
+                        }
+                        break;
+                        case MyConstants.win:{
+                            connection.clientCaro.tickToPanel((Boolean) obj.get("side"),(int) obj.get("i"), (int) obj.get("j"));
+                            connection.clientCaro.sendMessage((String) obj.get("massage"));
                         }
                         break;
                     }
