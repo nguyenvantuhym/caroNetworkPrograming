@@ -50,14 +50,14 @@ public class ServerConnection {
     ClientCaro clientCaro = null;
 
     public ServerConnection() throws IOException {
+
         this.socketOfServer = new Socket(serverHost, SERVER_PORT);
         this.buffWriter = new BufferedWriter(new OutputStreamWriter(socketOfServer.getOutputStream()));
         // Luồng đầu vào tại Client (Nhận dữ liệu từ server).
         this.buffReader = new BufferedReader(new InputStreamReader(socketOfServer.getInputStream()));
-        clientgui = new ClientGui(this);
-        receiveServer();
         enterName();
-        clientgui.setShow(true);
+        clientgui = new ClientGui(this);
+        //clientgui.setShow(true);
 
     }
 
@@ -96,20 +96,16 @@ public class ServerConnection {
         JSONObject req =new JSONObject();
         req.put("message","registerName");
         req.put("name", name);
-        req.put("flag", 1);
+        req.put("flag", MyConstants.set_name_client);
         sendMessage(req.toString());
     }
 
-    public void receiveServer(){
-        clientgui.setDisable();
-        new ReceiveThread(buffWriter,buffReader, socketOfServer, this).start();
-    }
+
     public void sendinviteRequestToClient(int partnerId) throws IOException {
         clientgui.sendMessage(partnerId);
     }
 
     public void sendMessage(String message) throws IOException {
-
         this.buffWriter.write(message);
         this.buffWriter.newLine();
         this.buffWriter.flush();
@@ -120,6 +116,14 @@ public class ServerConnection {
     }
 
     public static void main(String[] args) throws IOException {
-        new ServerConnection();
+        ServerConnection _connection = new ServerConnection();
+        ReceiveThread receiveThread = new ReceiveThread(
+                _connection.getBuffWriter(),
+                _connection.getBuffReader(),
+                _connection.getSocketOfServer(),
+                _connection
+        );
+        receiveThread.start();
+
     }
 }

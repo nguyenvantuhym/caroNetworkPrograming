@@ -17,6 +17,8 @@ public class MyConstants {
     public static final  int stick_flag = 8;
     public static final  int stick_flag_res = 9;
     public final static int win = 10;
+    public final static int exit = 11;
+
 
 
 }

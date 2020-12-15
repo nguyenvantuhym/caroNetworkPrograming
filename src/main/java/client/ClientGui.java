@@ -30,9 +30,30 @@ public class ClientGui implements ActionListener {
         f = new JFrame();
         table.setBounds(0,100, 400,300);
         f.add(table);
-        f.invalidate();
-        f.validate();
-        f.repaint();
+        setShow(true);
+        f.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                if (JOptionPane.showConfirmDialog(f,
+                        "Are you sure you want to close this window?", "Close Window?",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+                    JSONObject json = new JSONObject();
+                    json.put("flag", MyConstants.exit);
+                    //json.put("flag", );
+                    try {
+                        connection.sendMessage(json.toString());
+//                        connection.getBuffWriter().close();
+                        connection.getBuffReader().close();
+//                        connection.getSocketOfServer().close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    System.exit(0);
+                }
+            }
+        });
+
     }
 
     public void setDisable(){
@@ -43,6 +64,7 @@ public class ClientGui implements ActionListener {
         // this will hide and dispose the frame, so that the application quits by
         // itself if there is nothing else around.
         f.setVisible(false);
+        System.out.println("logasdasd");
         f.dispose();
     }
 

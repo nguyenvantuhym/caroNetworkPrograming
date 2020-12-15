@@ -18,10 +18,15 @@ class ReceiveThread extends  Thread{
     Socket socket = null;
     ServerConnection connection = null;
     public ReceiveThread( BufferedWriter os, BufferedReader is, Socket socket, ServerConnection connection){
+        System.out.println("init connection");
         this.connection = connection;
         this.socket = socket;
         this.os = os;
         this.is = is;
+    }
+
+    public ReceiveThread() {
+
     }
 
 
@@ -31,8 +36,8 @@ class ReceiveThread extends  Thread{
             // Tạo luồng đầu ra tại client (Gửi dữ liệu tới server)
             String responseLine;
             while (true) {
-
-                if (!((responseLine = is.readLine()) != null)) break;
+                System.out.println("waiting receive server");
+                responseLine = is.readLine();
                     System.out.println(responseLine);
                     JSONObject obj = new JSONObject(responseLine);
                     int flag = (int) obj.get("flag");
@@ -58,13 +63,14 @@ class ReceiveThread extends  Thread{
                         }
                         break;
                     }
+                    if (responseLine.equals("500 bye")) {
+                        os.close();
+                        is.close();
+                        socket.close();
+                        return;
+                    }
                 }
-                if (responseLine.equals("500 bye")) {
-                    os.close();
-                    is.close();
-                    socket.close();
-                    return;
-                }
+
 
         } catch (IOException e) {
             e.printStackTrace();

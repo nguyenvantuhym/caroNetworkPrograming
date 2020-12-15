@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.TreeMap;
 
 
@@ -16,70 +17,82 @@ class ProcessClient extends Thread{
     final int O = 1;
 
     ClientSocket clientSocket;
-    ArrayList<ClientSocket> lsClient;
+    TreeMap<Integer, ClientSocket> mapClient;
     TreeMap<String,int[][]> caroTable = null;
-    public ProcessClient(ClientSocket _clientSocket, ArrayList<ClientSocket> _lsClient,
+    public ProcessClient(ClientSocket _clientSocket, TreeMap<Integer, ClientSocket> _mapClient,
                          TreeMap<String,int[][]> _caroTable){
         super();
         this.clientSocket = _clientSocket;
-        this.lsClient = _lsClient;
+        this.mapClient = _mapClient;
         this.caroTable = _caroTable;
     }
+
 
     @Override
     public void run() {
         String line;
         try {
-            while (true) {
-                line = this.clientSocket.buffReader.readLine();
-                System.out.println(line);
-                line = line.trim();
-                JSONObject json = new JSONObject(line);
 
-                int flag = (int) json.get("flag");
-                switch(flag){
-                    case MyConstants.set_name_client: // set name client
-                    {
-                        this.clientSocket.getUser().setName((String) json.get("name"));
-                        ArrayList<User> arrayUser = new ArrayList();
-                        this.lsClient.forEach(client -> {
-                            arrayUser.add(client.getUser());
-                        });
-                        JSONArray lsUser = new JSONArray(arrayUser);
-                        JSONObject lsUserObj = new JSONObject();
-                        lsUserObj.put("flag", MyConstants.return_list_user);
-                        lsUserObj.put("list_user", lsUser);
-                        System.out.println(lsUserObj.toString());
-                        for(int i = 0; i < this.lsClient.size(); i ++){
-                            sendToClient(this.lsClient.get(i), lsUserObj.toString());
+                System.out.println("The user thread is running");
+                while (true) {
+                    line = this.clientSocket.buffReader.readLine();
+                    System.out.println(" line 35: "+line);
+                    if(line.equals("null")){
+                    }
+                    line = line.trim();
+                    JSONObject json = new JSONObject(line);
+
+                    int flag = (int) json.get("flag");
+                    switch(flag){
+                        case MyConstants.set_name_client: {
+                            this.clientSocket.getUser().setName((String) json.get("name"));
+                            System.out.println("asdasd");
+                            Collection<ClientSocket> arrClientSocket =  this.mapClient.values();
+                            System.out.println("asdasd");
+                            ArrayList<User> arrUser = new ArrayList<>();
+                            System.out.println(arrClientSocket.size());
+                            arrClientSocket.forEach(clientSocket1 -> {
+                                System.out.println("tututut");
+                                arrUser.add(clientSocket1.getUser());
+                            });
+                            JSONArray lsUser = new JSONArray(arrUser);
+                            JSONObject resUserObj = new JSONObject();
+                            resUserObj.put("flag", MyConstants.return_list_user);
+                            resUserObj.put("list_user", lsUser);
+                            System.out.println(resUserObj.toString());
+                            arrClientSocket.forEach(clientSocket1 -> {
+                                try {
+                                    sendToClient(clientSocket1, resUserObj.toString());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            });
 
                         }
-                    }
                         break;
-                    case MyConstants.get_list_user: // get list user
-                        ArrayList<User> arrayUser = new ArrayList();
-                        this.lsClient.forEach(client -> {
-                            arrayUser.add(client.getUser());
-                        });
-                        JSONArray lsUser = new JSONArray(arrayUser);
-                        JSONObject lsUserObj = new JSONObject();
-                        lsUserObj.put("flag", MyConstants.return_list_user);
-                        lsUserObj.put("list_user", lsUser);
-                        System.out.println(lsUserObj.toString());
-
-                        sendToClient(this.clientSocket, lsUserObj.toString());
-                        break;
-                    case MyConstants.start_game: {
+                        case MyConstants.get_list_user: {// get list user
+                            Collection<ClientSocket> arrClientSocket = this.mapClient.values();
+                            ArrayList<User> arrUser = new ArrayList<>();
+                            arrClientSocket.forEach(clientSocket1 -> {
+                                arrUser.add(clientSocket1.getUser());
+                            });
+                            JSONArray lsUser = new JSONArray(arrUser);
+                            JSONObject lsUserObj = new JSONObject();
+                            lsUserObj.put("flag", MyConstants.return_list_user);
+                            lsUserObj.put("list_user", lsUser);
+                            sendToClient(this.clientSocket, lsUserObj.toString());
+                        }
+                            break;
+                        case MyConstants.start_game: {
 
                             User user = this.clientSocket.user;
                             int partnerId = (int) json.get("partnerId");
                             user.setPartnerId(partnerId);
-                            ClientSocket partnerClientSocket = this.lsClient.get(partnerId);
-                            System.out.println(partnerClientSocket.user.getInGame());
-                        String key = (this.clientSocket.getUser().getId() < this.clientSocket.getUser().getPartnerId())?
-                                this.clientSocket.getUser().getId()+ " " + this.clientSocket.getUser().getPartnerId():
-                                this.clientSocket.getUser().getPartnerId()+ " " +this.clientSocket.getUser().getId();
-                        caroTable.put(key, new int[MyConstants.column + 2][MyConstants.row + 2]);
+                            ClientSocket partnerClientSocket = this.mapClient.get(partnerId);
+                            String key = (this.clientSocket.getUser().getId() < this.clientSocket.getUser().getPartnerId())?
+                                    this.clientSocket.getUser().getId()+ " " + this.clientSocket.getUser().getPartnerId():
+                                    this.clientSocket.getUser().getPartnerId()+ " " +this.clientSocket.getUser().getId();
+                            caroTable.put(key, new int[MyConstants.column + 2][MyConstants.row + 2]);
                             if (!partnerClientSocket.user.getInGame()) { // && partnerClientSocket.user.getId() != user.getId()
                                 JSONObject obj = new JSONObject();
                                 obj.put("flag", MyConstants.invite);
@@ -93,98 +106,128 @@ class ProcessClient extends Thread{
                             }
                         }
                         break;
-                    case MyConstants.accepted: {
-                        int partnerId = (int )json.get("partnerId");
-                        ClientSocket Skuser = this.clientSocket;
-                        ClientSocket SkPartner = this.lsClient.get(partnerId);
-                        Skuser.user.setInGame(true);
-                        Skuser.user.setPartnerId(partnerId);
-                        SkPartner.user.setInGame(true);
-                        SkPartner.user.setPartnerId(this.clientSocket.user.getId());
+                        case MyConstants.accepted: {
+                            int partnerId = (int )json.get("partnerId");
+                            ClientSocket Skuser = this.clientSocket;
+                            ClientSocket SkPartner = this.mapClient.get(partnerId);
+                            Skuser.user.setInGame(true);
+                            Skuser.user.setPartnerId(partnerId);
+                            SkPartner.user.setInGame(true);
+                            SkPartner.user.setPartnerId(this.clientSocket.user.getId());
 
-                        JSONObject obj1 = new JSONObject();
-                        obj1.put("flag", MyConstants.start_caro);
-                        obj1.put("your_side",O);
-                        obj1.put("your_name",Skuser.user.getName());
-                        obj1.put("message","bat dau game thoi nao!");
-                        obj1.put("your_turn",false);
-                        sendToClient(Skuser, obj1.toString());
+                            JSONObject obj1 = new JSONObject();
+                            obj1.put("flag", MyConstants.start_caro);
+                            obj1.put("your_side",O);
+                            obj1.put("your_name",Skuser.user.getName());
+                            obj1.put("message","bat dau game thoi nao!");
+                            obj1.put("your_turn",false);
+                            sendToClient(Skuser, obj1.toString());
 
-                        JSONObject obj2 = new JSONObject();
-                        obj2.put("flag", MyConstants.start_caro);
-                        obj2.put("your_side",X);
-                        obj2.put("your_name",SkPartner.user.getName());
-                        obj2.put("message","bat dau game thoi nao!");
-                        obj2.put("your_turn",true);
-                        sendToClient(SkPartner, obj2.toString());
+                            JSONObject obj2 = new JSONObject();
+                            obj2.put("flag", MyConstants.start_caro);
+                            obj2.put("your_side",X);
+                            obj2.put("your_name",SkPartner.user.getName());
+                            obj2.put("message","bat dau game thoi nao!");
+                            obj2.put("your_turn",true);
+                            sendToClient(SkPartner, obj2.toString());
 
-                    }
-                    break;
-                    case MyConstants.stick_flag: {
-                        int i = (int)json.get("i");
-                        int j = (int)json.get("j");
-                        String key = (this.clientSocket.getUser().getId() < this.clientSocket.getUser().getPartnerId())?
-                        this.clientSocket.getUser().getId()+ " " + this.clientSocket.getUser().getPartnerId():
-                        this.clientSocket.getUser().getPartnerId()+ " " +this.clientSocket.getUser().getId();
-                        String strSide;
-                        Boolean side;
-                        if((Boolean) json.get("your_side") == MyConstants.O) {
-                            side = MyConstants.O;
-                            strSide = "O";
-                            caroTable.get(key)[i][j] = O;
                         }
-                        else {
-                            strSide = "X";
-                            side = MyConstants.X;
-                            caroTable.get(key)[i][j] = X;
-                        }
-                        ClientSocket Skuser = this.clientSocket;
-                        ClientSocket SkPartner = this.lsClient.get(this.clientSocket.user.getPartnerId());
-                        if(checkWin(i,j,caroTable.get(key))){
-                            System.out.println("thắng rồi "+strSide+" !!!");
-                            JSONObject o = new JSONObject();
-                            o.put("flag", MyConstants.win);
-                            o.put("massage", "Bạn thắng rồi");
-                            o.put("i",i);
-                            o.put("j",j);
-                            o.put("side", side);
-                            o.put("your_turn",false);
-                            sendToClient(Skuser, o.toString());
+                        break;
+                        case MyConstants.stick_flag: {
+                            int i = (int)json.get("i");
+                            int j = (int)json.get("j");
+                            String key = (this.clientSocket.getUser().getId() < this.clientSocket.getUser().getPartnerId())?
+                                    this.clientSocket.getUser().getId()+ " " + this.clientSocket.getUser().getPartnerId():
+                                    this.clientSocket.getUser().getPartnerId()+ " " +this.clientSocket.getUser().getId();
+                            String strSide;
+                            Boolean side;
+                            if((Boolean) json.get("your_side") == MyConstants.O) {
+                                side = MyConstants.O;
+                                strSide = "O";
+                                caroTable.get(key)[i][j] = O;
+                            }
+                            else {
+                                strSide = "X";
+                                side = MyConstants.X;
+                                caroTable.get(key)[i][j] = X;
+                            }
+                            ClientSocket Skuser = this.clientSocket;
+                            ClientSocket SkPartner = this.mapClient.get(this.clientSocket.user.getPartnerId());
+                            if(checkWin(i,j,caroTable.get(key))){
+                                System.out.println("thắng rồi "+strSide+" !!!");
+                                JSONObject o = new JSONObject();
+                                o.put("flag", MyConstants.win);
+                                o.put("massage", "Bạn thắng rồi");
+                                o.put("i",i);
+                                o.put("j",j);
+                                o.put("side", side);
+                                o.put("your_turn",false);
+                                sendToClient(Skuser, o.toString());
 
-                            JSONObject o1 = new JSONObject();
-                            o1.put("flag", MyConstants.win);
-                            o1.put("massage", "Bạn thua rồi");
-                            o1.put("i",i);
-                            o1.put("j",j);
-                            o1.put("side", side);
-                            o1.put("your_turn",false);
-                            sendToClient(SkPartner, o1.toString());
+                                JSONObject o1 = new JSONObject();
+                                o1.put("flag", MyConstants.win);
+                                o1.put("massage", "Bạn thua rồi");
+                                o1.put("i",i);
+                                o1.put("j",j);
+                                o1.put("side", side);
+                                o1.put("your_turn",false);
+                                sendToClient(SkPartner, o1.toString());
+                                break;
+                            }
+                            JSONObject obj1 = new JSONObject();
+                            obj1.put("flag", MyConstants.stick_flag_res);
+                            obj1.put("i",i);
+                            obj1.put("j",j);
+                            obj1.put("side", side);
+                            obj1.put("your_turn",false);
+
+                            sendToClient(Skuser, obj1.toString());
+
+                            JSONObject obj2 = new JSONObject();
+                            obj2.put("flag", MyConstants.stick_flag_res);
+                            obj2.put("i",i);
+                            obj2.put("j",j);
+                            obj2.put("side", side);
+                            obj2.put("your_turn",true);
+
+                            sendToClient(SkPartner, obj2.toString());
                             break;
+
                         }
-                        JSONObject obj1 = new JSONObject();
-                        obj1.put("flag", MyConstants.stick_flag_res);
-                        obj1.put("i",i);
-                        obj1.put("j",j);
-                        obj1.put("side", side);
-                        obj1.put("your_turn",false);
+                        case MyConstants.exit : {
+                            this.mapClient.remove(this.clientSocket.user.getId());
+                            Collection<ClientSocket> arrClientSocket =  this.mapClient.values();
+                            System.out.println("asdasd");
+                            ArrayList<User> arrUser = new ArrayList<>();
+                            System.out.println(arrClientSocket.size());
+                            arrClientSocket.forEach(clientSocket1 -> {
+                                System.out.println("tututut");
+                                arrUser.add(clientSocket1.getUser());
+                            });
 
-                        sendToClient(Skuser, obj1.toString());
+                            JSONArray lsUser = new JSONArray(arrUser);
+                            JSONObject resUserObj = new JSONObject();
+                            resUserObj.put("flag", MyConstants.return_list_user);
+                            resUserObj.put("list_user", lsUser);
+                            System.out.println(resUserObj.toString());
+                            arrClientSocket.forEach(clientSocket1 -> {
+                                try {
+                                    sendToClient(clientSocket1, resUserObj.toString());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                            this.clientSocket.buffReader.close();
+                            this.clientSocket.buffReader.close();
+                            this.clientSocket.socket.close();
+                            this.clientSocket = null;
 
-                        JSONObject obj2 = new JSONObject();
-                        obj2.put("flag", MyConstants.stick_flag_res);
-                        obj2.put("i",i);
-                        obj2.put("j",j);
-                        obj2.put("side", side);
-                        obj2.put("your_turn",true);
-
-                        sendToClient(SkPartner, obj2.toString());
+                        }
+                        break;
 
                     }
 
                 }
-
-            }
-
 //
         }
         catch (Exception ex) {
@@ -196,6 +239,7 @@ class ProcessClient extends Thread{
         clientSocket.buffWriter.write(jsonString);
         clientSocket.buffWriter.newLine();
         clientSocket.buffWriter.flush();
+        System.out.println("send to client");
     }
     public Boolean checkWin(int i, int j, int[][] b){
         int d = 0, k = i, h;
@@ -263,7 +307,7 @@ public class ServerCaro {
         BufferedReader is;
         BufferedWriter os;
         Socket socketOfClient = null;
-        ArrayList<ClientSocket> listSocket = new ArrayList<ClientSocket>();
+        TreeMap<Integer, ClientSocket> mapClient = new TreeMap();
         Boolean b[][] = new Boolean[MyConstants.column + 2][MyConstants.row + 2];
         TreeMap<String,int[][]> caroTable  = new TreeMap<>();
         // Mở một ServerSocket tại cổng serverPort.
@@ -276,7 +320,6 @@ public class ServerCaro {
             int countUser = 0;
             while(true){
 
-
                 // Chấp nhận một yêu cầu kết nối từ phía Client.
                 // Đồng thời nhận được một đối tượng Socket tại server.
 
@@ -288,14 +331,12 @@ public class ServerCaro {
                 os = new BufferedWriter(new OutputStreamWriter(socketOfClient.getOutputStream()));
                 User user = new User(countUser++,"{noname}");
                 ClientSocket tmpClientSocket = new ClientSocket(socketOfClient,  user, is, os);
-                listSocket.add(tmpClientSocket);
-                new ProcessClient(tmpClientSocket, listSocket,caroTable).start();
+                mapClient.put(user.getId(), tmpClientSocket);
+                new ProcessClient(tmpClientSocket, mapClient,caroTable).start();
 
             }
 
-
-            // Nhận được dữ liệu từ người dùng và gửi lại trả lời.
-
+            // Nhận được dữ liệu từ người dùng và gửi lại trả lời
 
         } catch (IOException e) {
             System.out.println(e);
