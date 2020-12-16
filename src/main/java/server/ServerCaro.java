@@ -197,11 +197,10 @@ class ProcessClient extends Thread{
                         case MyConstants.exit : {
                             this.mapClient.remove(this.clientSocket.user.getId());
                             Collection<ClientSocket> arrClientSocket =  this.mapClient.values();
-                            System.out.println("asdasd");
+
                             ArrayList<User> arrUser = new ArrayList<>();
                             System.out.println(arrClientSocket.size());
                             arrClientSocket.forEach(clientSocket1 -> {
-                                System.out.println("tututut");
                                 arrUser.add(clientSocket1.getUser());
                             });
 
@@ -221,9 +220,9 @@ class ProcessClient extends Thread{
                             this.clientSocket.buffReader.close();
                             this.clientSocket.socket.close();
                             this.clientSocket = null;
-
+                            return;
                         }
-                        break;
+
 
                     }
 

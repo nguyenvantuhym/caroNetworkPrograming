@@ -43,13 +43,21 @@ public class ClientGui implements ActionListener {
                     //json.put("flag", );
                     try {
                         connection.sendMessage(json.toString());
-//                        connection.getBuffWriter().close();
-                        connection.getBuffReader().close();
-//                        connection.getSocketOfServer().close();
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                     System.exit(0);
+//                    try {
+////
+////                        connection.getBuffWriter().close();
+////                        connection.getBuffReader().close();
+////                        connection.getSocketOfServer().close();
+//
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+
                 }
             }
         });

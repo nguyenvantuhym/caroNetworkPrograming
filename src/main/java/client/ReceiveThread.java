@@ -25,11 +25,6 @@ class ReceiveThread extends  Thread{
         this.is = is;
     }
 
-    public ReceiveThread() {
-
-    }
-
-
     @Override
     public void run() {
         try {
@@ -38,6 +33,7 @@ class ReceiveThread extends  Thread{
             while (true) {
                 System.out.println("waiting receive server");
                 responseLine = is.readLine();
+                if(responseLine == null) return;
                     System.out.println(responseLine);
                     JSONObject obj = new JSONObject(responseLine);
                     int flag = (int) obj.get("flag");
