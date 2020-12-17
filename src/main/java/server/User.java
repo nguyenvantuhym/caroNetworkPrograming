@@ -41,6 +41,7 @@ public class User {
         this.partnerId = partnerId;
     }
     public User(int _id, String _name){
+        this.setPartnerId(-1);
         this.setInGame(false);
         this.id = _id;
         this.name = _name;

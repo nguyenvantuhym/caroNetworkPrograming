@@ -25,9 +25,9 @@ public class ClientGui implements ActionListener {
     private JTextField inp;
     private JButton b;
 
-    public ClientGui(ServerConnection connection) throws IOException {
+    public ClientGui(ServerConnection connection, String titleFrame) throws IOException {
         this.connection = connection;
-        f = new JFrame();
+        f = new JFrame(titleFrame);
         table.setBounds(0,100, 400,300);
         f.add(table);
         setShow(true);
@@ -64,22 +64,14 @@ public class ClientGui implements ActionListener {
 
     }
 
-    public void setDisable(){
-
-        WindowEvent wev = new WindowEvent(f, WindowEvent.WINDOW_CLOSING);
-        Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(wev);
-
-        // this will hide and dispose the frame, so that the application quits by
-        // itself if there is nothing else around.
-        f.setVisible(false);
-        System.out.println("logasdasd");
-        f.dispose();
+    public void setVisible(boolean visible){
+        f.setVisible(visible);
     }
 
     public void setShow(Boolean visible) throws IOException {
         JSONObject req =new JSONObject();
         req.put("message","get_list_user");
-        req.put("flag", 2);
+        req.put("flag", MyConstants.get_list_user);
         connection.sendMessage(req.toString());
         String[][] data = new String[0][];
 
@@ -98,7 +90,7 @@ public class ClientGui implements ActionListener {
     }
 
     public void sendMessage(int partnerId) throws IOException {
-        int a = JOptionPane.showConfirmDialog(f,"banj co loi moi cho caro tu nguoi dung co id :" +partnerId);
+        int a = JOptionPane.showConfirmDialog(f,"Bạn nhận được lời mời đánh cờ Caro từ người dùng có ID :" +partnerId);
         if(a == JOptionPane.YES_OPTION){
            JSONObject object = new JSONObject();
            object.put("flag", MyConstants.accepted);

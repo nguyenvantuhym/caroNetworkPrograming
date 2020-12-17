@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static server.MyConstants.requestRestartGame;
+
 class ReceiveThread extends  Thread{
 
     BufferedWriter os = null;
@@ -45,17 +47,38 @@ class ReceiveThread extends  Thread{
                             connection.sendinviteRequestToClient((int) obj.get("partnerId"));
                             break;
                         case MyConstants.start_caro: {
-                            connection.clientgui.setDisable();
-                            connection.showClientCaro((Boolean) obj.get("your_turn"), (Boolean) obj.get("your_turn"),(String) obj.get("your_name"));
+                            connection.clientgui.setVisible(false);
+                            connection.showClientCaro((int) obj.get("turn"), (int) obj.get("your_side"),(String) obj.get("your_name"));
                         }
                         break;
                         case MyConstants.stick_flag_res: {
-                            connection.clientCaro.tickToPanel((Boolean) obj.get("side"),(int) obj.get("i"), (int) obj.get("j"));
+                            connection.clientCaro.tickToPanel((int) obj.get("turn"),(int) obj.get("i"), (int) obj.get("j"));
                         }
                         break;
                         case MyConstants.win:{
-                            connection.clientCaro.tickToPanel((Boolean) obj.get("side"),(int) obj.get("i"), (int) obj.get("j"));
-                            connection.clientCaro.sendMessage((String) obj.get("massage"));
+                            connection.clientCaro.tickToPanel((int) obj.get("turn"),(int) obj.get("i"), (int) obj.get("j"));
+                            connection.clientCaro.setWinLose((String) obj.get("massage"));
+                        }
+                        break;
+                        case MyConstants.restartGame:{
+                            connection.restartClientCaro((int) obj.get("turn"), (int) obj.get("your_side"),(String) obj.get("your_name"));
+                        }
+                        break;
+                        case MyConstants.requestRestartGame:{
+                            int i = connection.clientCaro.sendMessageToDialog("Thông báo","Đối thủ muốn đánh lại !");
+
+                            if(i == 0) {
+                                JSONObject json = new JSONObject();
+                                json.put("flag", MyConstants.restartGame);
+                                connection.sendMessage(json.toString());
+                                System.out.println(i);
+                            }
+                        }
+                        break;
+                        case MyConstants.outGame:{
+                             connection.clientCaro.dispose();
+                             connection.clientCaro = null;
+                             connection.clientgui.setVisible(true);
                         }
                         break;
                     }

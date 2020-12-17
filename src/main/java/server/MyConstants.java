@@ -12,12 +12,16 @@ public class MyConstants {
     public final static int return_list_user = 5;
     public final static int accepted = 6;
     public final static int start_caro = 7;
-    public final static Boolean X = true;
-    public final static Boolean O = false;
+    public final static int X = -1;
+    public final static int O = 1;
     public static final  int stick_flag = 8;
     public static final  int stick_flag_res = 9;
     public final static int win = 10;
     public final static int exit = 11;
+    public final static int requestRestartGame = 12;
+    public final static int restartGame = 13;
+
+    public final static int outGame = 14;
 
 
 
