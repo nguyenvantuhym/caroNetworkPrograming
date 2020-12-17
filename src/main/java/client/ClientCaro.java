@@ -70,7 +70,7 @@ public class ClientCaro extends JFrame implements ActionListener {
             for (int j = 1; j <= MyConstants.row; j++)
                 pn.add(b[i][j]);
         lb = new JLabel("X Đánh Trước");
-        newGame_bt = new JButton("Choi lại");
+        newGame_bt = new JButton("Chơi lại");
         newGame_bt.setActionCommand("tryAgain");
         undo_bt = new JButton("Undo");
         exit_bt = new JButton("Exit");
@@ -202,7 +202,7 @@ public class ClientCaro extends JFrame implements ActionListener {
 
                     }
                 }
-                else{
+                else {
                     int a = JOptionPane.showConfirmDialog(this,"Trò chơi đã kết thúc bạn có muốn chơi lại!!!");
                     if(a == JOptionPane.YES_OPTION){
                         JSONObject json = new JSONObject();

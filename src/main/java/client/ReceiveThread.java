@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import server.User;
 
+import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -76,6 +77,7 @@ class ReceiveThread extends  Thread{
                         }
                         break;
                         case MyConstants.outGame:{
+                             connection.clientCaro.sendMessageToDialog("Thông báo"," Đối thủ đã thoát game");
                              connection.clientCaro.dispose();
                              connection.clientCaro = null;
                              connection.clientgui.setVisible(true);
