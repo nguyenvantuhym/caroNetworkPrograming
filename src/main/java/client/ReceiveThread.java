@@ -47,6 +47,11 @@ class ReceiveThread extends  Thread{
                         case MyConstants.invite:
                             connection.sendinviteRequestToClient((int) obj.get("partnerId"));
                             break;
+                        case MyConstants.reques_invite_failed:{
+                            connection.clientgui.sendMessageRequestFail();
+
+                        }
+                        break;
                         case MyConstants.start_caro: {
                             connection.clientgui.setVisible(false);
                             connection.showClientCaro((int) obj.get("turn"), (int) obj.get("your_side"),(String) obj.get("your_name"));
