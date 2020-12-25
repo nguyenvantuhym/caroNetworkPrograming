@@ -110,7 +110,7 @@ public class ServerConnection {
     public String enterName() throws IOException {
         JFrame f;
         f = new JFrame();
-        String name = JOptionPane.showInputDialog(f,"Enter Name");
+        String name = JOptionPane.showInputDialog(f,"Xin vui lòng nhập tên: ");
 
         if(name == null || (name != null && ("".equals(name))))
         {

@@ -77,7 +77,7 @@ class ReceiveThread extends  Thread{
                         }
                         break;
                         case MyConstants.outGame:{
-                             connection.clientCaro.sendMessageToDialog("Thông báo"," Đối thủ đã thoát game");
+                             connection.clientCaro.sendMessageToDialog("Thông báo"," Đối thủ đã thoát khỏi ván cờ ");
                              connection.clientCaro.dispose();
                              connection.clientCaro = null;
                              connection.clientgui.setVisible(true);

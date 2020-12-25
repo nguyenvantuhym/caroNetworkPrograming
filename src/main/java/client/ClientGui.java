@@ -18,7 +18,7 @@ public class ClientGui implements ActionListener {
     private  JFrame f;
 
     String column[]= {"ID", "NAME", "partnerId", "ingame"};
-    String data[][] ={{}};
+    String data[][] ={{"ID", "NAME", "partnerId", "ingame"}};
     DefaultTableModel model = null;
 
     private JTable table = new JTable();
@@ -35,7 +35,7 @@ public class ClientGui implements ActionListener {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
                 if (JOptionPane.showConfirmDialog(f,
-                        "Are you sure you want to close this window?", "Close Window?",
+                        "Bạn có thực sự muốn thoát khỏi trò chơi không", "Thoát game",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
                     JSONObject json = new JSONObject();
@@ -106,10 +106,11 @@ public class ClientGui implements ActionListener {
 
         JSONObject obj = new JSONObject(names);
         JSONArray a = obj.getJSONArray("list_user");
-        String data [][] = new String[a.length()][];
-        for(int i = 0; i < a.length(); i++){
-            JSONObject b = (JSONObject) a.get(i);
-            data[i] =  new String[]{Integer.toString((int)b.get("id")), (String) b.get("name"), Integer.toString((int)b.get("partnerId")), (String) b.get("name") };
+        String data [][] = new String[a.length() + 1][];
+        data[0] = new String[]{"ID", "NAME", "partnerId", "ingame"};
+        for(int i = 1; i < a.length() + 1; i++){
+            JSONObject b = (JSONObject) a.get(i - 1);
+            data[i] =  new String[]{Integer.toString((int)b.get("id")), (String) b.get("name"), Integer.toString((int)b.get("partnerId")), (String) b.get("inGame").toString() };
 
         }
         model = new DefaultTableModel(data,column);
@@ -119,16 +120,14 @@ public class ClientGui implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
         if (actionEvent.getActionCommand() == "start_game") {
+            System.out.println("vantu");
             int id = Integer.parseInt(inp.getText());
             JSONObject json = new JSONObject();
             json.put("flag", MyConstants.start_game);
             json.put("partnerId", id);
-
+            System.out.println(json.toString());
             try {
-                BufferedWriter bw = connection.getBuffWriter();
-                bw.write(json.toString());
-                bw.newLine();
-                bw.flush();
+                connection.sendMessage(json.toString());
             } catch (IOException e) {
                 e.printStackTrace();
             }

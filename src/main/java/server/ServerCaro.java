@@ -46,41 +46,12 @@ class ProcessClient extends Thread{
                 switch(flag){
                     case MyConstants.set_name_client: {
                         this.clientSocket.getUser().setName((String) json.get("name"));
-                        System.out.println("asdasd");
-                        Collection<ClientSocket> arrClientSocket =  this.mapClient.values();
-                        System.out.println("asdasd");
-                        ArrayList<User> arrUser = new ArrayList<>();
-                        System.out.println(arrClientSocket.size());
-                        arrClientSocket.forEach(clientSocket1 -> {
-                            System.out.println("tututut");
-                            arrUser.add(clientSocket1.getUser());
-                        });
-                        JSONArray lsUser = new JSONArray(arrUser);
-                        JSONObject resUserObj = new JSONObject();
-                        resUserObj.put("flag", MyConstants.return_list_user);
-                        resUserObj.put("list_user", lsUser);
-                        System.out.println(resUserObj.toString());
-                        arrClientSocket.forEach(clientSocket1 -> {
-                            try {
-                                sendToClient(clientSocket1, resUserObj.toString());
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        });
+                        sendListUserToAllUser();
 
                     }
                     break;
                     case MyConstants.get_list_user: {// get list user
-                        Collection<ClientSocket> arrClientSocket = this.mapClient.values();
-                        ArrayList<User> arrUser = new ArrayList<>();
-                        arrClientSocket.forEach(clientSocket1 -> {
-                            arrUser.add(clientSocket1.getUser());
-                        });
-                        JSONArray lsUser = new JSONArray(arrUser);
-                        JSONObject lsUserObj = new JSONObject();
-                        lsUserObj.put("flag", MyConstants.return_list_user);
-                        lsUserObj.put("list_user", lsUser);
-                        sendToClient(this.clientSocket, lsUserObj.toString());
+                        sendListUserToAllUser();
                     }
                         break;
                     case MyConstants.start_game: {
@@ -130,6 +101,7 @@ class ProcessClient extends Thread{
                         obj2.put("message","bat dau game thoi nao!");
                         obj2.put("turn",MyConstants.X);
                         sendToClient(SkPartner, obj2.toString());
+                        sendListUserToAllUser();
 
                     }
                     break;
@@ -188,38 +160,40 @@ class ProcessClient extends Thread{
                         break;
 
                     }
+                    case MyConstants.exitCaro : {
+                        int partnerId = this.clientSocket.getUser().getPartnerId();
+                        if(this.clientSocket.getUser().getInGame()){
+                            this.clientSocket.getUser().setPartnerId(-1);
+                            this.clientSocket.getUser().setInGame(false);
+                            this.mapClient.get(partnerId).getUser().setInGame(false);
+                            this.mapClient.get(partnerId).getUser().setPartnerId(-1);
+                            JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("flag",MyConstants.outGame);
+                            System.out.println(partnerId);
+                            sendToClient(
+                                    this.mapClient.get(partnerId),
+                                    jsonObject.toString());
+                            sendListUserToAllUser();
+
+                        }
+                    }
+                    break;
                     case MyConstants.exit : {
+                        int partnerId = this.clientSocket.getUser().getPartnerId();
+
                         if(this.clientSocket.getUser().getInGame()){
                             JSONObject jsonObject = new JSONObject();
                             jsonObject.put("flag",MyConstants.outGame);
-                            this.mapClient.get(this.clientSocket.getUser().getPartnerId()).getUser().setInGame(false);
-                            this.mapClient.get(this.clientSocket.getUser().getPartnerId()).getUser().setPartnerId(-1);
+
+
+                            this.mapClient.get(partnerId).getUser().setInGame(false);
+                            this.mapClient.get(partnerId).getUser().setPartnerId(-1);
                             sendToClient(
-                                    this.mapClient.get(this.clientSocket.getUser().getPartnerId()), jsonObject.toString());
-
+                                    this.mapClient.get(partnerId), jsonObject.toString());
                         }
-                        this.mapClient.remove(this.clientSocket.user.getId());
-                        Collection<ClientSocket> arrClientSocket =  this.mapClient.values();
-
-                        ArrayList<User> arrUser = new ArrayList<>();
-                        System.out.println(arrClientSocket.size());
-                        arrClientSocket.forEach(clientSocket1 -> {
-                            arrUser.add(clientSocket1.getUser());
-                        });
-
-                        JSONArray lsUser = new JSONArray(arrUser);
-                        JSONObject resUserObj = new JSONObject();
-                        resUserObj.put("flag", MyConstants.return_list_user);
-                        resUserObj.put("list_user", lsUser);
-                        System.out.println(resUserObj.toString());
-                        arrClientSocket.forEach(clientSocket1 -> {
-                            try {
-                                sendToClient(clientSocket1, resUserObj.toString());
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        });
-
+                        this.mapClient.remove(this.clientSocket.getUser().getId());
+                        this.clientSocket = null;
+                        sendListUserToAllUser();
                         return;
                     }
                     case MyConstants.requestRestartGame:{
@@ -252,7 +226,6 @@ class ProcessClient extends Thread{
                         obj2.put("turn",MyConstants.X);
                         sendToClient(this.mapClient.get(this.clientSocket.user.getPartnerId()), obj2.toString());
 
-
                     }
                     break;
 
@@ -266,6 +239,27 @@ class ProcessClient extends Thread{
         }
 
 //        System.out.println("Closing...");
+    }
+    public void sendListUserToAllUser(){
+        Collection<ClientSocket> arrClientSocket =  this.mapClient.values();
+        ArrayList<User> arrUser = new ArrayList<>();
+        System.out.println(arrClientSocket.size());
+        arrClientSocket.forEach(clientSocket1 -> {
+            arrUser.add(clientSocket1.getUser());
+        });
+
+        JSONArray lsUser = new JSONArray(arrUser);
+        JSONObject resUserObj = new JSONObject();
+        resUserObj.put("flag", MyConstants.return_list_user);
+        resUserObj.put("list_user", lsUser);
+        System.out.println(resUserObj.toString());
+        arrClientSocket.forEach(clientSocket1 -> {
+            try {
+                sendToClient(clientSocket1, resUserObj.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
     public void sendToClient(ClientSocket clientSocket, String jsonString) throws IOException {
         clientSocket.buffWriter.write(jsonString);

@@ -23,6 +23,9 @@ public class MyConstants {
 
     public final static int outGame = 14;
 
+    public final static int exitCaro = 15;
+
+
 
 
 }

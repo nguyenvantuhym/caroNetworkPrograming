@@ -73,9 +73,10 @@ public class ClientCaro extends JFrame implements ActionListener {
         newGame_bt = new JButton("Chơi lại");
         newGame_bt.setActionCommand("tryAgain");
         undo_bt = new JButton("Undo");
-        exit_bt = new JButton("Exit");
+        exit_bt = new JButton("Thoát khỏi ván đấu");
         newGame_bt.setEnabled(false);
         newGame_bt.addActionListener(this);
+        exit_bt.setActionCommand("exitCaro");
         undo_bt.addActionListener(this);
         exit_bt.addActionListener(this);
         exit_bt.setForeground(x_cl);
@@ -97,7 +98,7 @@ public class ClientCaro extends JFrame implements ActionListener {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
                 if (JOptionPane.showConfirmDialog(f,
-                        "Are you sure you want to close this window?", "Close Window?",
+                        "Bạn có thực sự muốn thoát khỏi trò chơi không", "Thoát game",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
                     JSONObject json = new JSONObject();
@@ -109,7 +110,10 @@ public class ClientCaro extends JFrame implements ActionListener {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    System.exit(0);
+                    f.dispose();
+                    connection.clientgui.setVisible(true);
+
+                   // System.exit(0);
                 }
             }
         });
@@ -159,16 +163,18 @@ public class ClientCaro extends JFrame implements ActionListener {
            // undo();
         }
         else
-        if (e.getActionCommand() == "Exit") {
+        if (e.getActionCommand() == "exitCaro") {
             JSONObject json = new JSONObject();
-            json.put("flag", MyConstants.exit);
+            json.put("flag", MyConstants.exitCaro);
             try {
                 connection.sendMessage(json.toString());
 
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
-
+            connection.clientgui.setVisible(true);
+            this.dispose();
+            connection.clientCaro = null;
 
         }
         else {
