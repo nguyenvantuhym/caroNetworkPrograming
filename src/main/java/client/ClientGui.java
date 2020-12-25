@@ -102,6 +102,10 @@ public class ClientGui implements ActionListener {
 
         }
     }
+    public void sendMessageRequestFail(){
+        int a = JOptionPane.showConfirmDialog(f,"Đối thủ không online hoặc từ chối yêu cầu của bạn");
+
+    }
     public void setList(String names){
 
         JSONObject obj = new JSONObject(names);
@@ -120,8 +124,15 @@ public class ClientGui implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
         if (actionEvent.getActionCommand() == "start_game") {
+            int id = -1;
             System.out.println("vantu");
-            int id = Integer.parseInt(inp.getText());
+            try {
+                id = Integer.parseInt(inp.getText());
+            } catch (NumberFormatException ignored) {
+                JOptionPane.showConfirmDialog(f,"Bạn cần phải nhập chính xác ID của đối thủ muốn mời chơi");
+                return;
+            }
+
             JSONObject json = new JSONObject();
             json.put("flag", MyConstants.start_game);
             json.put("partnerId", id);

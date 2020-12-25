@@ -58,23 +58,34 @@ class ProcessClient extends Thread{
 
                         User user = this.clientSocket.user;
                         int partnerId = (int) json.get("partnerId");
-                        user.setPartnerId(partnerId);
+
                         ClientSocket partnerClientSocket = this.mapClient.get(partnerId);
-                        String key = (this.clientSocket.getUser().getId() < this.clientSocket.getUser().getPartnerId())?
-                                this.clientSocket.getUser().getId()+ " " + this.clientSocket.getUser().getPartnerId():
-                                this.clientSocket.getUser().getPartnerId()+ " " +this.clientSocket.getUser().getId();
-                        caroTable.put(key, new int[MyConstants.column + 2][MyConstants.row + 2]);
-                        if (!partnerClientSocket.user.getInGame()) { // && partnerClientSocket.user.getId() != user.getId()
-                            JSONObject obj = new JSONObject();
-                            obj.put("flag", MyConstants.invite);
-                            obj.put("partnerId", this.clientSocket.user.getId());
-                            sendToClient(partnerClientSocket, obj.toString());
-                        } else {
+                        if(partnerClientSocket == null || partnerId == this.clientSocket.user.getId()) {
                             JSONObject obj = new JSONObject();
                             obj.put("flag", MyConstants.reques_invite_failed);
-                            obj.put("message", "doi phuong da trong game");
-                            this.clientSocket.buffWriter.write(obj.toString());
+                            obj.put("message", "doi phuong da trong game hoac da thoat game");
+                            System.out.println("fail"); sendToClient(this.clientSocket,obj.toString());
+                            break;
                         }
+                        else {
+                            user.setPartnerId(partnerId);
+                            String key = (this.clientSocket.getUser().getId() < this.clientSocket.getUser().getPartnerId())?
+                                    this.clientSocket.getUser().getId()+ " " + this.clientSocket.getUser().getPartnerId():
+                                    this.clientSocket.getUser().getPartnerId()+ " " +this.clientSocket.getUser().getId();
+                            caroTable.put(key, new int[MyConstants.column + 2][MyConstants.row + 2]);
+                            if (!partnerClientSocket.user.getInGame()) { // && partnerClientSocket.user.getId() != user.getId()
+                                JSONObject obj = new JSONObject();
+                                obj.put("flag", MyConstants.invite);
+                                obj.put("partnerId", this.clientSocket.user.getId());
+                                sendToClient(partnerClientSocket, obj.toString());
+                            } else {
+                                JSONObject obj = new JSONObject();
+                                obj.put("flag", MyConstants.reques_invite_failed);
+                                obj.put("message", "doi phuong da trong game");
+                                sendToClient(this.clientSocket,obj.toString());
+                            }
+                        }
+
                     }
                     break;
                     case MyConstants.accepted: {
